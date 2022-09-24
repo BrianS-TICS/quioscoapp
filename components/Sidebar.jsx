@@ -1,10 +1,27 @@
 import React from 'react'
+import Image from 'next/image'
+import useQuiosco from '../hooks/useQuiosco'
+import Categoria from './Categoria'
 
 const Sidebar = () => {
+
+    const { categorias } = useQuiosco();
+
+
     return (
-        <aside className='md:w-4/12 xl:w-1/4 2xl:w-1/5'>
-            <h1>Barra laterial</h1>
-        </aside>
+        <>
+            <Image width={300} height={100} src="/assets/img/logo.svg" alt='imagen logotipo' />
+
+            <nav className='mt-10'>
+                {categorias.map( categoria => (
+                    <Categoria
+                        key={categoria.id}
+                        categoria={categoria}
+                    >
+                    </Categoria>
+                ))}
+            </nav>
+        </>
     )
 }
 
