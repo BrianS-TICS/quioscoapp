@@ -2,25 +2,21 @@
 import { useEffect, useCallback } from 'react'
 import Layout from '../layout/Layout.js'
 import useQuiosco from '../hooks/useQuiosco.js'
+import {formatearDinero} from '../helpers'
 
 export default function Total() {
 
-    const { pedido } = useQuiosco()
+    const { pedido, nombre, setNombre, colocarOrden, total} = useQuiosco()
 
     //! REPASAR AQUI
 
     const comprobarPedido = useCallback(() => {
-        return pedido.length === 0
-    }, [pedido])
+        return pedido.length === 0 || nombre === '' || nombre.length < 3
+    }, [pedido, nombre])
 
     useEffect(() => {
         comprobarPedido()
     }, [pedido, comprobarPedido])
-
-    const colocarOrden = (e) => {
-        e.preventDefault()
-        console.log('Enviando orden');
-    }
 
     return (
         <Layout pagina="Total y confirmar pedido">
@@ -37,11 +33,13 @@ export default function Total() {
                         name='nombre'
                         type="text"
                         className='bg-gray-200 w-full lg:w-1/3 mt-2 p-2 rounded-md'
+                        value={nombre}
+                        onChange={ (e) => setNombre(e.target.value)}
                     />
                 </div>
 
                 <div className='mt-10'>
-                    <p className='text-2xl'>Total a pagar: {''} <span className='font-bold'> </span> </p>
+                    <p className='text-2xl'>Total a pagar: {''} <span className='font-bold'>{formatearDinero(total)}</span> </p>
                 </div>
 
                 <div className='mt-5'>

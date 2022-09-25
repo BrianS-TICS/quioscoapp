@@ -3,7 +3,6 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/router'
 
-
 const QuioscoContext = createContext();
 
 const QuioscoProvider = ({ children }) => {
@@ -13,6 +12,8 @@ const QuioscoProvider = ({ children }) => {
     const [producto, setProducto] = useState({})
     const [modal, setModal] = useState(false)
     const [pedido, setPedido] = useState([])
+    const [nombre, setNombre] = useState("")
+    const [total, setTotal] = useState(0)
 
     const router = useRouter()
 
@@ -70,6 +71,35 @@ const QuioscoProvider = ({ children }) => {
         setPedido(pedidoActualizado)
     }
 
+    
+    useEffect( () => {
+        const nuevoTotal = pedido.reduce( (acumulacion, producto) => (producto.precio * producto.cantidad) + acumulacion,0)
+        setTotal(nuevoTotal)
+    },[pedido])
+    
+    const colocarOrden = async (e) => {
+        e.preventDefault()
+        try {
+            await axios.post('/api/ordenes', {pedido, nombre, total, fecha:Date.now().toString()})
+
+            // Reset app
+            setCategoriaActual(categorias[0])
+            setPedido([])
+            setNombre("")
+            setTotal(0)
+
+            toast.success('Pedido realizado correctamente')
+
+            setTimeout(() => {
+                router.push('/')    
+            }, 3000);
+
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+
     return (<QuioscoContext.Provider
         value={{
             categorias,
@@ -82,7 +112,11 @@ const QuioscoProvider = ({ children }) => {
             handleAgregarPedido,
             pedido,
             handleEditarCantidades,
-            handleEliminarProducto
+            handleEliminarProducto,
+            nombre,
+            setNombre,
+            colocarOrden,
+            total
         }}
     >
         {children}
