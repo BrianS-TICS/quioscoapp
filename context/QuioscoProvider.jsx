@@ -1,18 +1,23 @@
-import {useState, useEffect, createContext} from 'react'
+import { useState, useEffect, createContext } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
+import { useRouter } from 'next/router'
+
 
 const QuioscoContext = createContext();
 
-const QuioscoProvider = ({children}) => {
+const QuioscoProvider = ({ children }) => {
 
-    const [categorias, setCategorias] = useState([]);
-    const [categoriaActual, setCategoriaActual] = useState({});
-    const [producto, setProducto] = useState({});
-    const [modal, setModal] = useState(false);
-    const [pedido, setPedido] = useState([]);
+    const [categorias, setCategorias] = useState([])
+    const [categoriaActual, setCategoriaActual] = useState({})
+    const [producto, setProducto] = useState({})
+    const [modal, setModal] = useState(false)
+    const [pedido, setPedido] = useState([])
 
-    const obtenerCategorias = async () =>{
-        const {data} = await axios('/api/categorias')
+    const router = useRouter()
+
+    const obtenerCategorias = async () => {
+        const { data } = await axios('/api/categorias')
         setCategorias(data)
     }
 
@@ -20,20 +25,23 @@ const QuioscoProvider = ({children}) => {
         obtenerCategorias()
     }, [])
 
-    useEffect( () => {
+    useEffect(() => {
         setCategoriaActual(categorias[0])
     }, [categorias])
 
-    const handleAgregarPedido = ({categoriaId, imagen, ...producto}) => {
-        if(pedido.some(productoState => productoState.id === producto.id)){
+    const handleAgregarPedido = ({ categoriaId, ...producto }) => {
+        if (pedido.some(productoState => productoState.id === producto.id)) {
             // Actualizar la cantidad
             const pedidoActualizado = pedido.map(productoState => productoState.id === producto.id ? producto :
-            productoState)
+                productoState)
 
             setPedido(pedidoActualizado)
-        }else{
+            toast.success("Guardado correctamente")
+        } else {
             setPedido([...pedido, producto]);
+            toast.success("Agregado al pedido")
         }
+        setModal(!modal)
     }
 
     const handleChangeModal = () => {
@@ -41,29 +49,45 @@ const QuioscoProvider = ({children}) => {
     }
 
     const hanldeClickCategoria = (id) => {
-        const categoria = categorias.filter( elemento => elemento.id === id)
+        const categoria = categorias.filter(elemento => elemento.id === id)
         setCategoriaActual(categoria[0])
+        router.push('/')
     }
 
     const handleClickProducto = producto => {
         setProducto(producto)
     }
 
-    return ( <QuioscoContext.Provider
-                value={{
-                    categorias,
-                    categoriaActual,
-                    hanldeClickCategoria,
-                    producto,
-                    handleClickProducto,
-                    modal,
-                    handleChangeModal,
-                    handleAgregarPedido
-                }}
-            >
-                {children}
-            </QuioscoContext.Provider> 
-        )
+    const handleEditarCantidades = id => {
+        const productoActualizar = pedido.filter( producto => producto.id === id)
+        setProducto(productoActualizar[0])
+
+        setModal(!modal)
+    }
+
+    const handleEliminarProducto = id => {
+        const pedidoActualizado = pedido.filter( producto => producto.id !== id)
+        setPedido(pedidoActualizado)
+    }
+
+    return (<QuioscoContext.Provider
+        value={{
+            categorias,
+            categoriaActual,
+            hanldeClickCategoria,
+            producto,
+            handleClickProducto,
+            modal,
+            handleChangeModal,
+            handleAgregarPedido,
+            pedido,
+            handleEditarCantidades,
+            handleEliminarProducto
+        }}
+    >
+        {children}
+    </QuioscoContext.Provider>
+    )
 }
 
 export {
